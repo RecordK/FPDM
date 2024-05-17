@@ -14,3 +14,5 @@ torchvision==0.18.0
 transformers==4.40.1
 wandb==0.16.6
 xformers==0.0.26.post1
+lpips==0.1.4
+accelerate==0.30.1

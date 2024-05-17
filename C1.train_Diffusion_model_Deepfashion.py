@@ -32,7 +32,7 @@ def get_parser():
                         help='Path to config file')
     parser.add_argument("--root_path", type=str, default='./dataset/deepfashion/', help='Path to config file')
     parser.add_argument("--phase", type=str, default='train', help='train/test')
-    parser.add_argument("--disable_logger", type=str2bool, default='true')
+    parser.add_argument("--disable_logger", type=str2bool, default='false')
     parser.add_argument("--finetune_from", type=str, default='false')
     parser.add_argument("--mode", default='client')
     parser.add_argument("--port", default=52162)
@@ -88,7 +88,7 @@ args.init_src_image_encoder = False
 args.fusion_image_encoder = True
 args.fusion_image_patch_encoder = True
 args.pretrained_model_name_or_path = "stabilityai/stable-diffusion-2-1-base"
-args.fusion_model_path = './logs/deepfashion-fusion-CLIP-patch-learning-0516/2024-05-16T11-06-54/last.ckpt'
+args.fusion_model_path = '../sign-diff/logs/deepfashion-fusion-CLIP-patch-learning-0516/2024-05-16T11-06-54/last.ckpt'
 args.visualize_images = True
 args.calculate_metrics = True
 args.loss_type = 'mse_loss'  # mse_loss, shrinkage_loss

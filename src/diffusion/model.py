@@ -200,7 +200,7 @@ class FPDM(pl.LightningModule):
                                 weight_decay=self.hparams.weight_decay)
         lr_scheduler = optim.lr_scheduler.CosineAnnealingLR(
             optimizer, T_max=self.hparams.max_epochs,
-            eta_min=self.hparams.lr / 50
+            eta_min=self.hparams.lr * 0.01
         )
         return [optimizer], [lr_scheduler]
 
@@ -489,10 +489,3 @@ class FPDM(pl.LightningModule):
         mod = 'val'
         self.epoch_end_run(mod)
 
-# vis_s_p_t_g = Image.new("RGB", (args.img_width*(3+args.num_images_per_prompt), args.img_height))
-# vis_s_p_t_g.paste(s_img, (0, 0))
-# vis_s_p_t_g.paste(t_pose, (args.img_width, 0))
-# vis_s_p_t_g.paste(t_img, (args.img_width*2, 0))
-# for i in range(args.num_images_per_prompt):
-#     vis_s_p_t_g.paste(output[i], (args.img_width * (2+i+1), 0))
-# self.log.log_image(key="samples", images=vis_s_p_t_g)
