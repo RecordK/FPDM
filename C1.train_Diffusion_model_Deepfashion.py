@@ -28,7 +28,7 @@ def get_parser():
 
     parser = argparse.ArgumentParser()
     # parser.add_argument("--config", type=str, default='./config/simclr.yaml', help='Path to config file')
-    parser.add_argument("--project_name", type=str, default='deepfashion-diffusion-model-learning-tmp',
+    parser.add_argument("--project_name", type=str, default='deepfashion-diffusion-model-learning-dropmodule',
                         help='Path to config file')
     parser.add_argument("--root_path", type=str, default='./dataset/deepfashion/', help='Path to config file')
     parser.add_argument("--phase", type=str, default='train', help='train/test')
@@ -60,9 +60,8 @@ def load_logger(args):
 
     return logger, ckpt_cb
 
-
 args = get_parser()
-args.batch_size = 16
+args.batch_size = 16 #64
 args.num_workers = 8
 args.hidden_dim = 768
 args.lr = 0 # 1e-4
@@ -90,8 +89,8 @@ args.imgs_drop_rate = 0.1
 args.pose_drop_rate = 0.1
 args.src_image_encoder_path = 'openai/clip-vit-base-patch16'
 args.init_src_image_encoder = False
-args.fusion_image_encoder = True
-args.fusion_image_patch_encoder = True
+args.fusion_image_encoder = False
+args.fusion_image_patch_encoder = False
 args.pretrained_model_name_or_path = "stabilityai/stable-diffusion-2-1-base"
 args.fusion_model_path = '../sign-diff/logs/deepfashion-fusion-CLIP-patch-learning-0516/2024-05-16T11-06-54/last.ckpt'
 args.visualize_images = True
