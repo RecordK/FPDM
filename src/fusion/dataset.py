@@ -13,7 +13,7 @@ class FusionDataset(Dataset):
         self.data = data
         self.args = args
         # self.PK_module = ProcessingKeypoints()
-        self.image_processor = AutoImageProcessor.from_pretrained('openai/clip-vit-large-patch14')  # 앞으로 빼기
+        self.image_processor = AutoImageProcessor.from_pretrained(self.args.img_encoder_path)  # 앞으로 빼기
 
         self.ColorJitter_functions = {0: transforms.functional.adjust_brightness,
                                       1: transforms.functional.adjust_contrast,

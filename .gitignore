@@ -542,3 +542,8 @@ Temporary Items
 .apdisk
 
 .idea
+*.ckpt
+*.pyc
+*.wandb
+*.yaml
+logs
