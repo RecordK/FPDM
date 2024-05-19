@@ -14,6 +14,7 @@ import numpy as np
 import skimage
 import torch
 from imageio import imread
+
 from scipy import linalg
 from skimage.metrics import peak_signal_noise_ratio as compare_psnr
 from skimage.metrics import structural_similarity as compare_ssim
@@ -80,12 +81,12 @@ class FID():
     def calculate_from_disk(self, generated_path, gt_path, img_size):
         """ 
         """
-        if not os.path.exists(gt_path):
-            raise RuntimeError('Invalid path: %s' % gt_path)
-        if not os.path.exists(generated_path):
-            raise RuntimeError('Invalid path: %s' % generated_path)
+        # if not os.path.exists(gt_path):
+        #     raise RuntimeError('Invalid path: %s' % gt_path)
+        # if not os.path.exists(generated_path):
+        #     raise RuntimeError('Invalid path: %s' % generated_path)
 
-        print('exp-path - ' + generated_path)
+        # print('exp-path - ' + generated_path)
 
         print('calculate gt_path statistics...')
         m1, s1 = self.compute_statistics_of_path(gt_path, self.verbose, img_size)
@@ -97,29 +98,28 @@ class FID():
         return fid_value
 
     def compute_statistics_of_path(self, path, verbose, img_size):
+        #
+        # size_flag = '{}_{}'.format(img_size[0], img_size[1])
+        # npz_file = os.path.join(path, size_flag + '_statistics.npz')
+        # if os.path.exists(npz_file):
+        #     f = np.load(npz_file)
+        #     m, s = f['mu'][:], f['sigma'][:]
+        #     f.close()
+        #
+        # else:
 
-        size_flag = '{}_{}'.format(img_size[0], img_size[1])
-        npz_file = os.path.join(path, size_flag + '_statistics.npz')
-        if os.path.exists(npz_file):
-            f = np.load(npz_file)
-            m, s = f['mu'][:], f['sigma'][:]
-            f.close()
+        # path = pathlib.Path(path)
+        files = path #list(path.glob('*.jpg')) + list(path.glob('*.png'))
+        imgs = (np.array(
+            [(cv2.resize(cv2.imread(str(fn)).astype(np.float32), img_size, interpolation=cv2.INTER_CUBIC)) for fn in
+             files])) / 255.0
+        # Bring images to shape (B, 3, H, W)
+        imgs = imgs.transpose((0, 3, 1, 2))
 
-        else:
+        # Rescale images to be between 0 and 1
 
-            path = pathlib.Path(path)
-            files = list(path.glob('*.jpg')) + list(path.glob('*.png'))
-
-            imgs = (np.array(
-                [(cv2.resize(imread(str(fn)).astype(np.float32), img_size, interpolation=cv2.INTER_CUBIC)) for fn in
-                 files])) / 255.0
-            # Bring images to shape (B, 3, H, W)
-            imgs = imgs.transpose((0, 3, 1, 2))
-
-            # Rescale images to be between 0 and 1
-
-            m, s = self.calculate_activation_statistics(imgs, verbose)
-            np.savez(npz_file, mu=m, sigma=s)
+        m, s = self.calculate_activation_statistics(imgs, verbose)
+        # np.savez(npz_file, mu=m, sigma=s)
 
         return m, s
 

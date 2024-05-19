@@ -392,11 +392,11 @@ class FPDM_DiffusionPipeline(DiffusionPipeline):
             guidance_rescale: float = 0.0,
             # add
             t_image: Optional[torch.FloatTensor] = None,
-            # mask: Optional[torch.FloatTensor] = None,
             s_img_proj_f: Optional[torch.FloatTensor] = None,
             t_pose_f: Optional[torch.FloatTensor] = None,
             pred_t_img_embed: Optional[torch.FloatTensor] = None,
             fusion_img_embed: Optional[torch.FloatTensor] = None,
+            noise_offset : float = None
     ):
 
         device = self._execution_device
@@ -439,7 +439,7 @@ class FPDM_DiffusionPipeline(DiffusionPipeline):
             # source feature + target feature
             neg_feature_f = torch.zeros(feature_f.shape).to(device)  # , dtype=torch.float16
             feature_f = torch.cat([neg_feature_f, feature_f], dim=0)
-
+            # feature_f = torch.cat([neg_feature_f, feature_f, neg_feature_f], dim=0)
             # target global feature
             neg_prior_embed = torch.zeros(prior_embed.shape).to(device)  # , dtype=torch.float16
             prior_embed = torch.cat([neg_prior_embed, prior_embed], dim=0)
@@ -447,21 +447,6 @@ class FPDM_DiffusionPipeline(DiffusionPipeline):
         else:
             feature_f = feature_f.repeat(bs * num_images_per_prompt, 1, 1)
             prior_embed = pred_t_img_embed.repeat(bs * num_images_per_prompt, 1, 1)
-
-        #################### sol
-
-        # t_latents = self.vae.encode(t_image.to(device, dtype=torch.float16)).latent_dist.sample()
-        # latents = t_latents * self.vae.config.scaling_factor
-        # # Sample noise that we'll add to the latents
-        # noise = torch.randn_like(t_latents)
-        #
-        # # Sample a random timestep for each image
-        # timesteps = torch.randint(999, 1000, (4,),
-        #                           device=t_latents.device,)
-        # timesteps = timesteps.long()
-        #
-        # # Add noise to the latents according to the noise magnitude at each timestep (this is the forward diffusion process)
-        # latents = self.scheduler.add_noise(latents, noise, timesteps).to(dtype=torch.float16)
 
         # 4. Prepare timesteps
         self.scheduler.set_timesteps(num_inference_steps, device=device)
@@ -480,7 +465,8 @@ class FPDM_DiffusionPipeline(DiffusionPipeline):
             generator,
             latents,
         )  # .to(dtype=torch.float16)  # bs, 4,h/8,w/8
-        # latents -= 0.2
+        if noise_offset:
+            latents += noise_offset
 
         # 6. Prepare extra step kwargs. TODO: Logic should ideally just be moved out of the pipeline
         extra_step_kwargs = self.prepare_extra_step_kwargs(generator, eta)
@@ -492,14 +478,15 @@ class FPDM_DiffusionPipeline(DiffusionPipeline):
 
                 # expand the latents if we are doing classifier free guidance
                 latent_model_input = torch.cat([latents] * 2) if do_classifier_free_guidance else latents
+                # latent_model_input = torch.cat([latents] * 3) if do_classifier_free_guidance else latents
                 latent_model_input = self.scheduler.scale_model_input(latent_model_input, t)
                 # noise_mask_maskedimage_latents =  torch.cat([latent_model_input, mask, masked_latents], dim=1).to(dtype=torch.float16)
                 noise_latents = latent_model_input  # .to(dtype=torch.float16)
 
                 noise_pred = \
                     self.unet(noise_latents, t, class_labels=prior_embed, encoder_hidden_states=feature_f,
-                              my_pose_cond=pose_cond, cross_attention_kwargs=cross_attention_kwargs, return_dict=False)[
-                        0]
+                              my_pose_cond=pose_cond, cross_attention_kwargs=cross_attention_kwargs,
+                              return_dict=False)[0]
 
                 # perform guidance
                 if do_classifier_free_guidance:

@@ -59,7 +59,7 @@ def get_parser():
             raise argparse.ArgumentTypeError("Boolean value expected.")
 
     parser = argparse.ArgumentParser()
-    parser.add_argument("--project_name", type=str, default='deepfashion-fusion-CLIP-patch-learning-wd',
+    parser.add_argument("--project_name", type=str, default='deepfashion-fusion-CLIP-patch-learning-sch',
                         help='Path to config file')
     parser.add_argument("--root_path", type=str, default='./dataset/deepfashion/', help='Path to config file')
     parser.add_argument("--phase", type=str, default='train', help='train/test')
@@ -73,12 +73,17 @@ args = get_parser()
 args.batch_size = 40
 args.num_workers = 8
 args.combiner_hidden_dim = 512  # large 768
-args.lr = 1e-5
+args.lr = 0
+args.scheduler_t0 = 10
+args.scheduler_t_mult = 2
+args.scheduler_eta_max = 0.0001
+args.scheduler_t_up = 3
+args.scheduler_gamma = 0.5
 args.temperature = 0.07  # 0.07
-args.weight_decay = 1e-3
-args.max_epochs = 50
+args.weight_decay = 1e-2
+args.max_epochs = 60
 args.scale_size = (256, 256)
-args.lambda_l1 = 0.00001
+args.lambda_l1 = 0.0001
 args.encoder_type = 'clip'
 args.attn_hidden_dim = 768  # large-1024
 args.mh_attn_size = 16
@@ -98,6 +103,7 @@ args.train_patch_embeddings_sampling_ratio = 0.01
 logger, ckpt_cb = load_logger(args)
 train_dataset = read_dataset(args.root_path, args.train_dataset_name)
 test_dataset = read_dataset(args.root_path, args.test_dataset_name)
+len(train_dataset)
 
 dat = []
 for i in train_dataset:

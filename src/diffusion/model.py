@@ -179,6 +179,7 @@ class SDModel(torch.nn.Module):
 class FPDM(pl.LightningModule):
     def __init__(self, args):
         super().__init__()
+
         self.args = args
         self.save_hyperparameters(args)
         # load train and test dataset list
@@ -420,6 +421,7 @@ class FPDM(pl.LightningModule):
             guidance_scale=self.hparams.guidance_scale,
             generator=generator,
             num_inference_steps=self.hparams.num_inference_steps,
+            #noise_offset=self.hparams.noise_offset
         )
         return output
 
@@ -483,10 +485,15 @@ class FPDM(pl.LightningModule):
 
         return out_dict
 
-    def epoch_end_run(self, mod):
-        # self.vae.to(torch.float16)
+    def init_device(self):
         self.pipe.to(self.device)
         self.lpips_obj.model.to(self.device)
+
+    def epoch_end_run(self, mod):
+        # self.vae.to(torch.float16)
+        # self.pipe.to(self.device)
+        # self.lpips_obj.model.to(self.device)
+        self.init_device()
 
         metric_list = ['ssim', 'psnr', 'lpips', 'fid']
         total_metric = {i: [] for i in metric_list}
