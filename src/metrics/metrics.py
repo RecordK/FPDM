@@ -117,10 +117,7 @@ class FID():
         imgs = imgs.transpose((0, 3, 1, 2))
 
         # Rescale images to be between 0 and 1
-
         m, s = self.calculate_activation_statistics(imgs, verbose)
-        # np.savez(npz_file, mu=m, sigma=s)
-
         return m, s
 
     def calculate_activation_statistics(self, images, verbose):
@@ -309,60 +306,60 @@ class Reconstruction_Metrics():
             gt_image_list = get_image_list(gts)
 
         size_flag = '{}_{}'.format(img_size[0], img_size[1])
-        npz_file = os.path.join(save_path, size_flag + '_metrics.npz')
-        if os.path.exists(npz_file):
-            f = np.load(npz_file)
-            psnr, ssim, ssim_256, mae, l1 = f['psnr'], f['ssim'], f['ssim_256'], f['mae'], f['l1']
-        else:
-            psnr = []
-            ssim = []
-            ssim_256 = []
-            mae = []
-            l1 = []
-            names = []
+        # npz_file = os.path.join(save_path, size_flag + '_metrics.npz')
+        # if os.path.exists(npz_file):
+        #     f = np.load(npz_file)
+        #     psnr, ssim, ssim_256, mae, l1 = f['psnr'], f['ssim'], f['ssim_256'], f['mae'], f['l1']
+        # else:
+        psnr = []
+        ssim = []
+        ssim_256 = []
+        mae = []
+        l1 = []
+        names = []
 
-            for index in range(len(input_image_list)):
-                name = os.path.basename(input_image_list[index])
-                names.append(name)
+        for index in range(len(input_image_list)):
+            name = os.path.basename(input_image_list[index])
+            names.append(name)
 
-                img_gt = (cv2.resize(imread(str(gt_image_list[index])).astype(np.float32), img_size,
-                                     interpolation=cv2.INTER_CUBIC)) / 255.0
-                img_pred = (cv2.resize(imread(str(input_image_list[index])).astype(np.float32), img_size,
-                                       interpolation=cv2.INTER_CUBIC)) / 255.0
+            img_gt = (cv2.resize(cv2.imread(str(gt_image_list[index])).astype(np.float32), img_size,
+                                 interpolation=cv2.INTER_CUBIC)) / 255.0
+            img_pred = (cv2.resize(cv2.imread(str(input_image_list[index])).astype(np.float32), img_size,
+                                   interpolation=cv2.INTER_CUBIC)) / 255.0
 
-                if debug != 0:
-                    plt.subplot('121')
-                    plt.imshow(img_gt)
-                    plt.title('Groud truth')
-                    plt.subplot('122')
-                    plt.imshow(img_pred)
-                    plt.title('Output')
-                    plt.show()
+            if debug != 0:
+                plt.subplot('121')
+                plt.imshow(img_gt)
+                plt.title('Groud truth')
+                plt.subplot('122')
+                plt.imshow(img_pred)
+                plt.title('Output')
+                plt.show()
 
-                psnr.append(compare_psnr(img_gt, img_pred, data_range=self.data_range))
-                ssim.append(compare_ssim(img_gt, img_pred, data_range=self.data_range,
-                                         win_size=self.win_size, multichannel=self.multichannel, channel_axis=2))
-                mae.append(compare_mae(img_gt, img_pred))
-                l1.append(compare_l1(img_gt, img_pred))
+            psnr.append(compare_psnr(img_gt, img_pred, data_range=self.data_range))
+            ssim.append(compare_ssim(img_gt, img_pred, data_range=self.data_range,
+                                     win_size=self.win_size, multichannel=self.multichannel, channel_axis=2))
+            mae.append(compare_mae(img_gt, img_pred))
+            l1.append(compare_l1(img_gt, img_pred))
 
-                img_gt_256 = img_gt * 255.0
-                img_pred_256 = img_pred * 255.0
-                ssim_256.append(compare_ssim(img_gt_256, img_pred_256, gaussian_weights=True, sigma=1.2,
-                                             use_sample_covariance=False, multichannel=True, channel_axis=2,
-                                             data_range=img_pred_256.max() - img_pred_256.min()))
+            img_gt_256 = img_gt * 255.0
+            img_pred_256 = img_pred * 255.0
+            ssim_256.append(compare_ssim(img_gt_256, img_pred_256, gaussian_weights=True, sigma=1.2,
+                                         use_sample_covariance=False, multichannel=True, channel_axis=2,
+                                         data_range=img_pred_256.max() - img_pred_256.min()))
 
-                if np.mod(index, 200) == 0:
-                    print(
-                        str(index) + ' images processed',
-                        "PSNR: %.4f" % round(np.mean(psnr), 4),
-                        "SSIM_256: %.4f" % round(np.mean(ssim_256), 4),
-                        "MAE: %.4f" % round(np.mean(mae), 4),
-                        "l1: %.4f" % round(np.mean(l1), 4),
-                    )
+            if np.mod(index, 200) == 0:
+                print(
+                    str(index) + ' images processed',
+                    "PSNR: %.4f" % round(np.mean(psnr), 4),
+                    "SSIM_256: %.4f" % round(np.mean(ssim_256), 4),
+                    "MAE: %.4f" % round(np.mean(mae), 4),
+                    "l1: %.4f" % round(np.mean(l1), 4),
+                )
 
-            if save_path:
-                np.savez(save_path + '/' + size_flag + '_metrics.npz', psnr=psnr, ssim=ssim, ssim_256=ssim_256, mae=mae,
-                         l1=l1, names=names)
+        # if save_path:
+        #     np.savez(save_path + '/' + size_flag + '_metrics.npz', psnr=psnr, ssim=ssim, ssim_256=ssim_256, mae=mae,
+        #              l1=l1, names=names)
 
         print(
             "PSNR: %.4f" % round(np.mean(psnr), 4),
@@ -479,10 +476,10 @@ class LPIPS():
             end = start + batch_size
 
             imgs_1 = np.array(
-                [cv2.resize(imread(str(fn)).astype(np.float32), img_size, interpolation=cv2.INTER_CUBIC) / 255.0 for fn
+                [cv2.resize(cv2.imread(str(fn)).astype(np.float32), img_size, interpolation=cv2.INTER_CUBIC) / 255.0 for fn
                  in files_1[start:end]])
             imgs_2 = np.array(
-                [cv2.resize(imread(str(fn)).astype(np.float32), img_size, interpolation=cv2.INTER_CUBIC) / 255.0 for fn
+                [cv2.resize(cv2.imread(str(fn)).astype(np.float32), img_size, interpolation=cv2.INTER_CUBIC) / 255.0 for fn
                  in files_2[start:end]])
 
             imgs_1 = imgs_1.transpose((0, 3, 1, 2))

@@ -70,9 +70,9 @@ def get_parser():
 
 
 args = get_parser()
-args.batch_size = 40
+args.batch_size = 96
 args.num_workers = 8
-args.combiner_hidden_dim = 512  # large 768
+args.combiner_hidden_dim = 512  # large 768 base 512
 args.lr = 0
 args.scheduler_t0 = 10
 args.scheduler_t_mult = 2
@@ -85,7 +85,7 @@ args.max_epochs = 60
 args.scale_size = (256, 256)
 args.lambda_l1 = 0.0001
 args.encoder_type = 'clip'
-args.attn_hidden_dim = 768  # large-1024
+args.attn_hidden_dim = 768  # large-1024 base 768
 args.mh_attn_size = 16
 args.img_encoder_update = True
 args.trained_model_name = None  #

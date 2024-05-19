@@ -283,18 +283,22 @@ class FPDM(pl.LightningModule):
         # load images
         s_img = Image.open(s_img_path).convert("RGB").resize((self.hparams.img_width, self.hparams.img_height),
                                                              Image.BICUBIC)
-        t_img = Image.open(t_img_path).convert("RGB").resize((self.hparams.img_width, self.hparams.img_height),
-                                                             Image.BICUBIC)
+        if t_img_path:
+            t_img = Image.open(t_img_path).convert("RGB").resize((self.hparams.img_width, self.hparams.img_height),
+                                                                 Image.BICUBIC)
+        else:
+            t_img = None
         t_pose = Image.open(t_pose_path).convert("RGB").resize((self.hparams.img_width, self.hparams.img_height),
                                                                Image.BICUBIC)
         # preprocessing
         trans_s_img = self.transform(s_img).to(self.dtype).to(self.device).unsqueeze(0)
-        trans_t_img = self.transform(t_img).to(self.dtype).to(self.device).unsqueeze(0)
+        if t_img_path:
+            trans_t_img = self.transform(t_img).to(self.dtype).to(self.device).unsqueeze(0)
+        else:
+            trans_t_img = None
         trans_t_pose = self.transform(t_pose).to(self.dtype).to(self.device).unsqueeze(0)
         processed_s_img = (self.image_processor(images=s_img,
                                                 return_tensors="pt").pixel_values).to(self.dtype).to(self.device)
-        # processed_t_img = (self.image_processor(images=t_img,
-        #                                            return_tensors="pt").pixel_values).to(self.dtype).to(self.device)
         processed_t_pose = (self.image_processor(images=t_pose,
                                                  return_tensors="pt").pixel_values).to(self.dtype).to(self.device)
         _dict = {"source_image": trans_s_img,
@@ -435,6 +439,14 @@ class FPDM(pl.LightningModule):
         processed_target_pose = prep_data['processed_target_pose']
         output = self.denosing_pip(target_imgs, target_pose,
                                    processed_source_image, processed_target_pose)
+
+        if mod=='generation':
+            out_dict['source_image'] = Image.open(s_img_path).convert("RGB").resize(self.hparams.img_eval_size,
+                                                                                    Image.BICUBIC)
+            out_dict['target_pose'] = Image.open(t_pose_path).convert("RGB").resize(self.hparams.img_eval_size,
+                                                                                    Image.BICUBIC)
+            out_dict['generate_images'] = [i.resize(self.hparams.img_eval_size, Image.BICUBIC) for i in output.images]
+            return out_dict
 
         out_dict['source_image'] = Image.open(s_img_path).convert("RGB").resize(self.hparams.img_eval_size,
                                                                                 Image.BICUBIC)
