@@ -5,13 +5,13 @@ import os
 import cv2
 import numpy as np
 import tqdm
-
+import shutil
 
 
 # 데이터 train, test 명확하게 하기
 
 
-def reformat_dataset(dataset_dir, image_list):
+def reformat_deepfashion_dataset(dataset_dir, image_list):
     image_dict = {}
     for i in range(len(image_list)):
         _path0 = image_list[i].replace(dataset_dir, '.')
@@ -45,6 +45,39 @@ def reformat_dataset(dataset_dir, image_list):
                                'target_image': target_path})
     return filenames_train, filenames_test
 
+def reformat_market_dataset(dataset_dir):
+    filenames_train = []
+    file_txt = '{}/annotations/market-pairs-train.csv'.format(dataset_dir)
+    data = np.loadtxt(file_txt, dtype=str, skiprows=1)
+    for i in data:
+        source = i.split(',')[0]
+        target = i.split(',')[1]
+        source = os.path.join('./img', source)
+        target = os.path.join('./img', target)
+        if not os.path.exists(os.path.join(dataset_dir, source)):
+            print(f'warnning : no such a image {source}')
+        if not os.path.exists(os.path.join(dataset_dir, source)):
+            print(f'warnning : no such a image {target}')
+        filenames_train.append({'source_image': source,
+                                'target_image': target})
+    len(filenames_train)
+
+    filenames_test = []
+    file_txt = '{}/annotations/market-pairs-test.csv'.format(dataset_dir)
+    data = np.loadtxt(file_txt, dtype=str, skiprows=1)
+    for i in data:
+        source = i.split(',')[0]
+        target = i.split(',')[1]
+        source = os.path.join('./img', source)
+        target = os.path.join('./img', target)
+        if not os.path.exists(os.path.join(dataset_dir, source)):
+            print(f'warnning : no such a image {source}')
+        if not os.path.exists(os.path.join(dataset_dir, source)):
+            print(f'warnning : no such a image {target}')
+        filenames_test.append({'source_image': source,
+                               'target_image': target})
+    return filenames_train, filenames_test
+
 def omit_image_only(_dataset, type):
     intr_path = []
     idx_bool = []
@@ -65,8 +98,6 @@ def omit_image_only(_dataset, type):
     _dataset = list(np.array(_dataset)[idx_bool])
     return _dataset
 
-
-
 def resize_image(image_list, resized_dirname, ratio):
     for i in tqdm.tqdm(range(len(image_list))):
         c_path = image_list[i]
@@ -85,29 +116,46 @@ def resize_image(image_list, resized_dirname, ratio):
             print(i)
     print('finishing the image resize process')
 
+
+def run_preprcessing_deepfashion(resized_dirname, dataset_dir):
+    print('image resize preprocessing')
+    image_list = glob.glob(os.path.join(dataset_dir, 'img/**/*.jpg'), recursive=True)
+    resize_image(image_list, resized_dirname, ratio=0.5)
+
+    print('annotation preprocessing')
+    train_dataset, test_dataset = reformat_deepfashion_dataset(dataset_dir, image_list)
+    # check if imgs has no pose annotation omit.
+    train_dataset = omit_image_only(train_dataset, 'train')
+    test_dataset = omit_image_only(test_dataset, 'test')
+
+    with open(os.path.join(dataset_dir, f'train_pairs_data.json'), 'w') as f:
+        json.dump(train_dataset, f)
+    with open(os.path.join(dataset_dir, f'test_pairs_data.json'), 'w') as f:
+        json.dump(test_dataset, f)
+    print('process finished !! ')
+def run_preprcessing_market1501(dataset_dir):
+    image_list = glob.glob(os.path.join(dataset_dir, 'Market-1501-v15.09.15/**/*.jpg'), recursive=True)
+    for i in range(len(image_list)):
+        file_path = image_list[i]
+        basename = os.path.basename(file_path)
+        shutil.copy(file_path, os.path.join(dataset_dir, 'img', basename))
+
+    train_dataset, test_dataset = reformat_market_dataset(dataset_dir)
+    with open(os.path.join(dataset_dir, f'train_pairs_data.json'), 'w') as f:
+        json.dump(train_dataset, f)
+    with open(os.path.join(dataset_dir, f'test_pairs_data.json'), 'w') as f:
+        json.dump(test_dataset, f)
+    print('process finished !! ')
+
 root_dir = './dataset'
-dataset = 'deepfashion'
+dataset = 'market1501'
 resized_dirname = 'resized_img'
 dataset_dir = os.path.join(root_dir, dataset)
 
-print('image resize preprocessing')
-image_list = glob.glob(os.path.join(dataset_dir,'img/**/*.jpg'), recursive=True)
-resize_image(image_list, resized_dirname, ratio=0.5)
+if dataset == 'deepfashion':
+    run_preprcessing_deepfashion(resized_dirname, dataset_dir)
+elif dataset == 'market1501':
+    run_preprcessing_market1501(dataset_dir)
+else:
+    print('wrong dataset name')
 
-print('annotation preprocessing')
-train_dataset, test_dataset = reformat_dataset(dataset_dir, image_list)
-# check if imgs has no pose annotation omit.
-train_dataset = omit_image_only(train_dataset, 'train')
-test_dataset = omit_image_only(test_dataset, 'test')
-
-with open(os.path.join(dataset_dir, f'train_pairs_data.json'), 'w') as f:
-    json.dump(train_dataset, f)
-with open(os.path.join(dataset_dir, f'test_pairs_data.json'), 'w') as f:
-    json.dump(test_dataset, f)
-
-# _dataset = test_dataset
-# for i in range(len(_dataset)):
-#     dat = _dataset[0]
-#     if not os.path.split(dat['source_image'])[0] == os.path.split(dat['target_image'])[0]:
-#         if not os.path.split(dat['source_image'])[1][:2] == os.path.split(dat['target_image'])[1][:2]:
-#             print('warnnings')

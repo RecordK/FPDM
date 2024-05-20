@@ -21,12 +21,13 @@ class ProcessingKeypoints():
         missing_keypoint_index = keypoints == -1
 
         # crop the white line in the original dataset
-        keypoints[:, 0] = (keypoints[:, 0] - 40)
+
+        keypoints[:, 0] = (keypoints[:, 0] - param['offset'])
 
         # resize the dataset
         img_h, img_w = img_size
-        scale_w = 1.0 / 176.0 * img_w
-        scale_h = 1.0 / 256.0 * img_h
+        scale_w = 1.0 / param['anno_width'] * img_w
+        scale_h = 1.0 / param['anno_height'] * img_h
 
         if 'scale_size' in param and param['scale_size'] is not None:
             new_h, new_w = param['scale_size']
@@ -48,7 +49,7 @@ class ProcessingKeypoints():
         # keypoint = np.loadtxt(path)
         keypoint = np.loadtxt(path)
         keypoint = self.trans_keypoins(keypoint, param, img.shape[:2])
-        stickwidth = 4
+        stickwidth = param['stickwidth']
         for i in range(18):
             x, y = keypoint[i, 0:2]
             if x == -1 or y == -1:

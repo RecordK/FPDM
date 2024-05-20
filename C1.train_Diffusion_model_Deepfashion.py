@@ -27,13 +27,12 @@ def get_parser():
             raise argparse.ArgumentTypeError("Boolean value expected.")
 
     parser = argparse.ArgumentParser()
-    # parser.add_argument("--config", type=str, default='./config/simclr.yaml', help='Path to config file')
-    parser.add_argument("--project_name", type=str, default='deepfashion-diffusion-model-learning-dropmodule',
+    parser.add_argument("--project_name", type=str, default='deepfashion-diffusion-model-learning-large',
                         help='Path to config file')
-    parser.add_argument("--root_path", type=str, default='./dataset/deepfashion/', help='Path to config file')
+    # parser.add_argument("--root_path", type=str, default='./dataset/deepfashion/', help='Path to config file')
     parser.add_argument("--phase", type=str, default='train', help='train/test')
-    parser.add_argument("--disable_logger", type=str2bool, default='false')
-    parser.add_argument("--finetune_from", type=str, default='false')
+    parser.add_argument("--disable_logger", type=str2bool, default='true')
+    # parser.add_argument("--finetune_from", type=str, default='false')
     parser.add_argument("--mode", default='client')
     parser.add_argument("--port", default=52162)
     return parser.parse_args()
@@ -61,7 +60,7 @@ def load_logger(args):
     return logger, ckpt_cb
 
 args = get_parser()
-args.batch_size = 16 #64
+args.batch_size = 64
 args.num_workers = 8
 args.hidden_dim = 768
 args.lr = 0 # 1e-4
@@ -80,7 +79,7 @@ args.img_width = 256
 args.img_height = 256
 args.img_eval_size = (176, 256)  # (352, 512)
 args.guidance_scale = 2.0
-args.num_inference_steps = 50
+args.num_inference_steps = 20
 args.seed_number = 7
 args.num_images_per_prompt = 4
 args.test_n_samples = 10
@@ -92,7 +91,7 @@ args.init_src_image_encoder = False
 args.fusion_image_encoder = True
 args.fusion_image_patch_encoder = True
 args.pretrained_model_name_or_path = "stabilityai/stable-diffusion-2-1-base"
-args.fusion_model_path = '../sign-diff/logs/deepfashion-fusion-CLIP-patch-learning-0516/2024-05-16T11-06-54/last.ckpt'
+args.fusion_model_path = '../sign-diff/logs/deepfashion-fusion-CLIP-patch-learning-sch/2024-05-19T16-53-43/last.ckpt'
 args.visualize_images = True
 args.calculate_metrics = True
 args.loss_type = 'mse_loss'  # mse_loss, shrinkage_loss

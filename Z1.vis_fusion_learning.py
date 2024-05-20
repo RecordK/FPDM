@@ -47,6 +47,10 @@ contrastive learning
 2. vit of clip4cir
 3. vir out of classification
 '''
+# import glob
+# img_list = glob.glob('./dataset/deepfashion/img/**/*.jpg', recursive=True)
+# img = plt.imread(img_list[3])
+# plt.imshow(img[40:54,190:204,:]);plt.show()
 
 x = np.linspace(-0.5, 0.5, 100)
 y = 1 / (1 + np.exp(50 * (0.01 - x)))

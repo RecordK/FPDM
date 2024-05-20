@@ -440,7 +440,7 @@ class FPDM(pl.LightningModule):
         output = self.denosing_pip(target_imgs, target_pose,
                                    processed_source_image, processed_target_pose)
 
-        if mod=='generation':
+        if mod == 'generation':
             out_dict['source_image'] = Image.open(s_img_path).convert("RGB").resize(self.hparams.img_eval_size,
                                                                                     Image.BICUBIC)
             out_dict['target_pose'] = Image.open(t_pose_path).convert("RGB").resize(self.hparams.img_eval_size,

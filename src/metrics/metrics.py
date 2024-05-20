@@ -19,7 +19,7 @@ from scipy import linalg
 from skimage.metrics import peak_signal_noise_ratio as compare_psnr
 from skimage.metrics import structural_similarity as compare_ssim
 from torch.nn.functional import adaptive_avg_pool2d
-
+from PIL import Image
 from src.metrics.inception import InceptionV3
 
 print(skimage.__version__)
@@ -107,12 +107,15 @@ class FID():
         #     f.close()
         #
         # else:
-
+        # img_gt = Image.open(str(fn)).convert("RGB").resize(img_size, Image.BICUBIC) / 255.
         # path = pathlib.Path(path)
         files = path #list(path.glob('*.jpg')) + list(path.glob('*.png'))
         imgs = (np.array(
-            [(cv2.resize(cv2.imread(str(fn)).astype(np.float32), img_size, interpolation=cv2.INTER_CUBIC)) for fn in
-             files])) / 255.0
+            [np.array(Image.open(str(fn)).resize(img_size, Image.BICUBIC)) / 255. for fn in
+             files]))
+        # imgs = (np.array(
+        #     [(cv2.resize(cv2.imread(str(fn)).astype(np.float32), img_size, interpolation=cv2.INTER_CUBIC)) for fn in
+        #      files])) / 255.0
         # Bring images to shape (B, 3, H, W)
         imgs = imgs.transpose((0, 3, 1, 2))
 
@@ -322,10 +325,14 @@ class Reconstruction_Metrics():
             name = os.path.basename(input_image_list[index])
             names.append(name)
 
-            img_gt = (cv2.resize(cv2.imread(str(gt_image_list[index])).astype(np.float32), img_size,
-                                 interpolation=cv2.INTER_CUBIC)) / 255.0
-            img_pred = (cv2.resize(cv2.imread(str(input_image_list[index])).astype(np.float32), img_size,
-                                   interpolation=cv2.INTER_CUBIC)) / 255.0
+            img_gt = Image.open(gt_image_list[index]).convert("RGB").resize(img_size,Image.BICUBIC)
+            img_gt = np.array(img_gt)/255.
+            img_pred = Image.open(input_image_list[index]).convert("RGB").resize(img_size,Image.BICUBIC)
+            img_pred = np.array(img_pred)/255.
+            # img_gt = (cv2.resize(cv2.cvtColor(cv2.imread(gt_image_list[index]), cv2.COLOR_BGR2RGB).astype(np.float32), img_size,
+            #                      interpolation=cv2.INTER_CUBIC)) / 255.0
+            # img_pred = (cv2.resize(cv2.cvtColor(cv2.imread(input_image_list[index]), cv2.COLOR_BGR2RGB).astype(np.float32), img_size,
+            #                        interpolation=cv2.INTER_CUBIC)) / 255.0
 
             if debug != 0:
                 plt.subplot('121')
@@ -347,7 +354,6 @@ class Reconstruction_Metrics():
             ssim_256.append(compare_ssim(img_gt_256, img_pred_256, gaussian_weights=True, sigma=1.2,
                                          use_sample_covariance=False, multichannel=True, channel_axis=2,
                                          data_range=img_pred_256.max() - img_pred_256.min()))
-
             if np.mod(index, 200) == 0:
                 print(
                     str(index) + ' images processed',
@@ -476,14 +482,17 @@ class LPIPS():
             end = start + batch_size
 
             imgs_1 = np.array(
-                [cv2.resize(cv2.imread(str(fn)).astype(np.float32), img_size, interpolation=cv2.INTER_CUBIC) / 255.0 for fn
+                [np.array(Image.open(fn).convert("RGB").resize(img_size,Image.BICUBIC))/255. for fn
                  in files_1[start:end]])
             imgs_2 = np.array(
-                [cv2.resize(cv2.imread(str(fn)).astype(np.float32), img_size, interpolation=cv2.INTER_CUBIC) / 255.0 for fn
+                [np.array(Image.open(fn).convert("RGB").resize(img_size,Image.BICUBIC))/255. for fn
                  in files_2[start:end]])
 
             imgs_1 = imgs_1.transpose((0, 3, 1, 2))
             imgs_2 = imgs_2.transpose((0, 3, 1, 2))
+
+            # imgs_1 = imgs_1*2 - 1
+            # imgs_2 = imgs_2*2 - 1
 
             img_1_batch = torch.from_numpy(imgs_1).type(torch.FloatTensor)
             img_2_batch = torch.from_numpy(imgs_2).type(torch.FloatTensor)
